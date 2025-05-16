@@ -21,12 +21,15 @@ def main():
     WALK_LEFT = "WALK_LEFT"
     HAMMER_RIGHT = "HAMMER_RIGHT"
     HAMMER_LEFT = "HAMMER_LEFT"
+    DASH_RIGHT = "DASH_RIGHT"
+    DASH_LEFT = "DASH_LEFT"
 
     # Definindo as teclas aceitas pelo programa
     alfabeto_teclas = {
         'a': pygame.K_a,
         'd': pygame.K_d,
         'z': pygame.K_z,
+        'f' : pygame.K_f,
         None: None
     }
 
@@ -36,24 +39,31 @@ def main():
         (IDLE_RIGHT, 'a'): WALK_LEFT,
         (IDLE_RIGHT, None): IDLE_RIGHT,
         (IDLE_RIGHT, 'z'): HAMMER_RIGHT,
+        (IDLE_RIGHT, 'f'): DASH_RIGHT,
 
         (IDLE_LEFT, 'd'): WALK_RIGHT,
         (IDLE_LEFT, 'a'): WALK_LEFT,
         (IDLE_LEFT, None): IDLE_LEFT,
         (IDLE_LEFT, 'z'): HAMMER_LEFT,
+        (IDLE_LEFT, 'f'): DASH_LEFT,
 
         (WALK_RIGHT, 'd'): WALK_RIGHT,
         (WALK_RIGHT, 'a'): WALK_LEFT,
         (WALK_RIGHT, None): IDLE_RIGHT,
         (WALK_RIGHT, 'z'): HAMMER_RIGHT,
+        (WALK_RIGHT, 'f'): DASH_RIGHT,
 
         (WALK_LEFT, 'd'): WALK_RIGHT,
         (WALK_LEFT, 'a'): WALK_LEFT,
         (WALK_LEFT, None): IDLE_LEFT,
         (WALK_LEFT, 'z'): HAMMER_LEFT,
+        (WALK_LEFT, 'f'): DASH_LEFT,
 
         (HAMMER_LEFT, None): IDLE_LEFT,
         (HAMMER_RIGHT, None): IDLE_RIGHT,
+
+        (DASH_LEFT, None): IDLE_LEFT,
+        (DASH_RIGHT, None): IDLE_RIGHT,
     }
 
     # Criando o AFD para controlar o personagem
@@ -87,6 +97,8 @@ def main():
     sprites_walk_left  = Sprite.carregar_sprites("..\\sprites\\walk\\left")
     sprites_hammer_right = Sprite.carregar_sprites("..\\sprites\\hammer\\right")
     sprites_hammer_left= Sprite.carregar_sprites("..\\sprites\\hammer\\left")
+    sprites_dash_right = Sprite.carregar_sprites("..\\sprites\\dash\\right")
+    sprites_dash_left = Sprite.carregar_sprites("..\\sprites\\dash\\left")
 
     # Definindo as ações realizadas pelo personagem
     acoes = {
@@ -96,14 +108,19 @@ def main():
         WALK_LEFT:      (personagem.walk_left, sprites_walk_left),
         HAMMER_RIGHT:   (personagem.hammer_right, sprites_hammer_right),
         HAMMER_LEFT:    (personagem.hammer_left, sprites_hammer_left),
+        DASH_RIGHT:     (personagem.idle, sprites_dash_right),
+        DASH_LEFT:      (personagem.idle, sprites_dash_left)
     }
 
     # Flag para controlar execução completa do hammer
     hammering = False
+    dashing = False
     estado_atual = afd.estado_inicial
+    direcao = "right" if "RIGHT" in estado_atual else "left"
 
     em_execucao = True
     while em_execucao:
+
         agora = pygame.time.get_ticks()
 
         # Devemos tratar os eventos que interrompam o loop de execução, como animações em que o personagem precisa
@@ -128,6 +145,18 @@ def main():
                     personagem.frame = 0
                     estado_atual = HAMMER_RIGHT
 
+            # Apertando a tecla F e olhando para a direita, o personagem entra em modo dash para a direita.
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_f:
+                if not dashing:
+                    dashing = True
+                    personagem.frame = 0
+
+                    personagem.start_dash(direcao)
+                    print(direcao)
+                    estado_atual = DASH_RIGHT if direcao == "right" else DASH_LEFT
+
+            # Apertando a tecla F e olhando para a esquerda, o personagem entra em modo dash para a esquerda.
+
         # Nesta parte do código, colocaremos as animações que devem ser feitas separadamente (ataques e supers).
         # Ataque 1: Ataque de martelo
         if hammering:
@@ -148,10 +177,36 @@ def main():
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
 
+        if dashing:
+            if agora - ultimo_tick > DELAY:
+                print(personagem.frame)
+                ultimo_tick = agora
+                personagem.frame += 1
+                print(estado_atual)
+                personagem.update_dash()
+
+                limite = len(sprites_dash_left) if estado_atual == DASH_LEFT else len(sprites_dash_right)
+                if personagem.frame >= limite:
+                    dashing = False
+                    personagem.frame = 0
+
+                    direcao = "left" if estado_atual == DASH_LEFT else "right"
+                    estado_atual = IDLE_LEFT if direcao == "left" else IDLE_RIGHT
+
+            acao, sprites = acoes[estado_atual]
+            acao()
+            renderizar(tela, sprites, personagem)
+            clock.tick(FRAME_RATE)
+            continue
+
         # Transições normais (sem ataques e supers)
         teclas = pygame.key.get_pressed()
-        if teclas[alfabeto_teclas['d']]: simbolo = 'd'
-        elif teclas[alfabeto_teclas['a']]: simbolo = 'a'
+        if teclas[alfabeto_teclas['d']]:
+            simbolo = 'd'
+            direcao = "right"
+        elif teclas[alfabeto_teclas['a']]:
+            simbolo = 'a'
+            direcao = "left"
         else: simbolo = None
 
         # Executando a ação
