@@ -3,8 +3,9 @@ from Personagem import *
 from Sprite import *
 import pygame
 
-def renderizar (tela, sprites, personagem, x = None, y = 400):
+def renderizar (tela, sprites, personagem, x = None, y = None):
     if x is None: x = personagem.x
+    if y is None: y = personagem.y
 
     tela.fill((30, 30, 30))
     tela.blit(sprites[personagem.frame], (x, y))
@@ -21,12 +22,14 @@ def main():
     WALK_LEFT = "WALK_LEFT"
     HAMMER_RIGHT = "HAMMER_RIGHT"
     HAMMER_LEFT = "HAMMER_LEFT"
+    JUMP = "JUMP"
 
     # Definindo as teclas aceitas pelo programa
     alfabeto_teclas = {
         'a': pygame.K_a,
         'd': pygame.K_d,
         'z': pygame.K_z,
+        'w': pygame.K_w,
         None: None
     }
 
@@ -67,7 +70,6 @@ def main():
 
     # Inicialização do PyGame
     pygame.init()
-    info = pygame.display.Info()
     w, h = 960, 540
     tela = pygame.display.set_mode((w, h))
     pygame.display.set_caption("Jogo com AFD")
@@ -87,6 +89,8 @@ def main():
     sprites_walk_left  = Sprite.carregar_sprites("..\\sprites\\walk\\left")
     sprites_hammer_right = Sprite.carregar_sprites("..\\sprites\\hammer\\right")
     sprites_hammer_left= Sprite.carregar_sprites("..\\sprites\\hammer\\left")
+    sprites_jump_right = Sprite.carregar_sprites("..\\sprites\\jump\\right")
+    sprites_jump_left = Sprite.carregar_sprites("..\\sprites\\jump\\left")
 
     # Definindo as ações realizadas pelo personagem
     acoes = {
@@ -96,14 +100,25 @@ def main():
         WALK_LEFT:      (personagem.walk_left, sprites_walk_left),
         HAMMER_RIGHT:   (personagem.hammer_right, sprites_hammer_right),
         HAMMER_LEFT:    (personagem.hammer_left, sprites_hammer_left),
+        # A ação de pular é tratada separadamente
     }
 
     # Flag para controlar execução completa do hammer
     hammering = False
     estado_atual = afd.estado_inicial
 
+    # Variáveis para controlar o pulo do personagem
+    jumping = False
+    velocidade_vertical = 0  # < 0: move para cima; > 0 move para baixo
+    gravidade = 1  # Diminui a velocidade vertical na subida e aumenta na descida
+    forca_pulo = -25  # Velocidade inicial do pulo
+    y_chao = personagem.y
+
     em_execucao = True
     while em_execucao:
+        # Atualizando a direção do pulo a cada rodada para ser coerente
+        direcao_pulo = +1 if "RIGHT" in estado_atual else -1
+
         agora = pygame.time.get_ticks()
 
         # Devemos tratar os eventos que interrompam o loop de execução, como animações em que o personagem precisa
@@ -128,6 +143,46 @@ def main():
                     personagem.frame = 0
                     estado_atual = HAMMER_RIGHT
 
+            # Tratando o evento de pulo
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_w:
+                if not jumping and not hammering:
+                    jumping = True
+                    velocidade_vertical = forca_pulo
+                    personagem.frame = 0
+
+        # Renderizando o pulo
+        if jumping:
+            # Física vertical
+            personagem.y += velocidade_vertical
+            velocidade_vertical += gravidade
+
+            # Controle horizontal no ar
+            teclas = pygame.key.get_pressed()
+            if teclas[pygame.K_a]:
+                personagem.x -= personagem.velocidade_pulando
+                direcao_pulo = -1
+            elif teclas[pygame.K_d]:
+                personagem.x += personagem.velocidade_pulando
+                direcao_pulo = +1
+
+            # Aterrissagem
+            if personagem.y >= y_chao:
+                personagem.y = y_chao
+                jumping = False
+                personagem.frame = 0
+
+            sprites = sprites_jump_right if direcao_pulo > 0 else sprites_jump_left
+
+            if agora - ultimo_tick > DELAY:
+                ultimo_tick = agora
+                personagem.frame = (personagem.frame + 1) % len(sprites)
+
+            # Renderizando
+            personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
+            renderizar(tela, sprites, personagem)
+            clock.tick(FRAME_RATE)
+            continue
+
         # Nesta parte do código, colocaremos as animações que devem ser feitas separadamente (ataques e supers).
         # Ataque 1: Ataque de martelo
         if hammering:
@@ -144,6 +199,7 @@ def main():
             # Mostrando na tela o ataque
             acao, sprites = acoes[estado_atual]
             acao()
+            personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
             renderizar(tela, sprites, personagem)
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
@@ -158,6 +214,7 @@ def main():
         estado_atual = afd.processar(simbolo)
         acao, sprites = acoes[estado_atual]
         acao()
+        personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
 
         # Atualização de frame normal
         if agora - ultimo_tick > DELAY:
