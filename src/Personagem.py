@@ -22,6 +22,12 @@ class Personagem:
         self.direcao_dash = "left"
         self.x -= self.distancia_movimento
 
+    def crouch_right (self):
+        pass
+
+    def crouch_left (self):
+        pass
+
     def hammer_right(self):
         pass # O personagem não se move
 
@@ -33,11 +39,9 @@ class Personagem:
             self.dash_ocorrendo = True
             self.dash_restante = self.distancia_dash_total
             self.direcao_dash = direcao
-            print(f"Dash iniciado para {direcao}")
 
     def update_dash (self):
         if self.dash_ocorrendo:
-            print(f"Dash ocorrendo: direção={self.direcao_dash}, dash_restante={self.dash_restante}")
             if self.dash_restante > 0:
                 deslocamento = min(self.distancia_dash_frame, self.dash_restante)
                 if self.direcao_dash == "right":

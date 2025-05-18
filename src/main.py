@@ -23,6 +23,8 @@ def main():
     HAMMER_LEFT = "HAMMER_LEFT"
     DASH_RIGHT = "DASH_RIGHT"
     DASH_LEFT = "DASH_LEFT"
+    CROUCH_RIGHT = "CROUCH_RIGHT"
+    CROUCH_LEFT = "CROUCH_LEFT"
 
     # Definindo as teclas aceitas pelo programa
     alfabeto_teclas = {
@@ -30,6 +32,7 @@ def main():
         'd': pygame.K_d,
         'z': pygame.K_z,
         'f' : pygame.K_f,
+        's': pygame.K_s,
         None: None
     }
 
@@ -40,30 +43,37 @@ def main():
         (IDLE_RIGHT, None): IDLE_RIGHT,
         (IDLE_RIGHT, 'z'): HAMMER_RIGHT,
         (IDLE_RIGHT, 'f'): DASH_RIGHT,
+        (IDLE_RIGHT, 's'): CROUCH_RIGHT,
 
         (IDLE_LEFT, 'd'): WALK_RIGHT,
         (IDLE_LEFT, 'a'): WALK_LEFT,
         (IDLE_LEFT, None): IDLE_LEFT,
         (IDLE_LEFT, 'z'): HAMMER_LEFT,
         (IDLE_LEFT, 'f'): DASH_LEFT,
+        (IDLE_LEFT, 's'): CROUCH_LEFT,
 
         (WALK_RIGHT, 'd'): WALK_RIGHT,
         (WALK_RIGHT, 'a'): WALK_LEFT,
         (WALK_RIGHT, None): IDLE_RIGHT,
         (WALK_RIGHT, 'z'): HAMMER_RIGHT,
         (WALK_RIGHT, 'f'): DASH_RIGHT,
+        (WALK_RIGHT, 's'): CROUCH_RIGHT,
 
         (WALK_LEFT, 'd'): WALK_RIGHT,
         (WALK_LEFT, 'a'): WALK_LEFT,
         (WALK_LEFT, None): IDLE_LEFT,
         (WALK_LEFT, 'z'): HAMMER_LEFT,
         (WALK_LEFT, 'f'): DASH_LEFT,
+        (WALK_LEFT, 's'): CROUCH_LEFT,
 
         (HAMMER_LEFT, None): IDLE_LEFT,
         (HAMMER_RIGHT, None): IDLE_RIGHT,
 
         (DASH_LEFT, None): IDLE_LEFT,
         (DASH_RIGHT, None): IDLE_RIGHT,
+
+        (CROUCH_RIGHT, None): IDLE_RIGHT,
+        (CROUCH_LEFT, None): IDLE_LEFT,
     }
 
     # Criando o AFD para controlar o personagem
@@ -99,6 +109,8 @@ def main():
     sprites_hammer_left= Sprite.carregar_sprites("..\\sprites\\hammer\\left")
     sprites_dash_right = Sprite.carregar_sprites("..\\sprites\\dash\\right")
     sprites_dash_left = Sprite.carregar_sprites("..\\sprites\\dash\\left")
+    sprites_crouch_right = Sprite.carregar_sprites("..\\sprites\\crouch\\right")
+    sprites_crouch_left = Sprite.carregar_sprites("..\\sprites\\crouch\\left")
 
     # Definindo as ações realizadas pelo personagem
     acoes = {
@@ -109,12 +121,15 @@ def main():
         HAMMER_RIGHT:   (personagem.hammer_right, sprites_hammer_right),
         HAMMER_LEFT:    (personagem.hammer_left, sprites_hammer_left),
         DASH_RIGHT:     (personagem.idle, sprites_dash_right),
-        DASH_LEFT:      (personagem.idle, sprites_dash_left)
+        DASH_LEFT:      (personagem.idle, sprites_dash_left),
+        CROUCH_RIGHT:   (personagem.crouch_right, sprites_crouch_right),
+        CROUCH_LEFT:    (personagem.crouch_left, sprites_crouch_left)
     }
 
-    # Flag para controlar execução completa do hammer
+    # Flag para controlar execução completa do hammer e do dash
     hammering = False
     dashing = False
+    crouching = False
     estado_atual = afd.estado_inicial
     direcao = "right" if "RIGHT" in estado_atual else "left"
 
@@ -145,17 +160,24 @@ def main():
                     personagem.frame = 0
                     estado_atual = HAMMER_RIGHT
 
-            # Apertando a tecla F e olhando para a direita, o personagem entra em modo dash para a direita.
+            # Apertando a tecla F, o personagem entra em modo dash.
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_f:
                 if not dashing:
                     dashing = True
                     personagem.frame = 0
 
                     personagem.start_dash(direcao)
-                    print(direcao)
                     estado_atual = DASH_RIGHT if direcao == "right" else DASH_LEFT
 
-            # Apertando a tecla F e olhando para a esquerda, o personagem entra em modo dash para a esquerda.
+            # Apertando a tecla S, o personagem agacha, se apertar S novamente, ele se levanta.
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_s:
+                crouching = not crouching
+                personagem.frame = 0
+                if crouching:
+                    crouching = True
+                    estado_atual = CROUCH_RIGHT if direcao == "right" else CROUCH_LEFT
+                else:
+                    estado_atual = IDLE_RIGHT if estado_atual == CROUCH_RIGHT else IDLE_LEFT
 
         # Nesta parte do código, colocaremos as animações que devem ser feitas separadamente (ataques e supers).
         # Ataque 1: Ataque de martelo
@@ -177,12 +199,11 @@ def main():
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
 
+        # Dash: o personagem avança em um dash.
         if dashing:
             if agora - ultimo_tick > DELAY:
-                print(personagem.frame)
                 ultimo_tick = agora
                 personagem.frame += 1
-                print(estado_atual)
                 personagem.update_dash()
 
                 limite = len(sprites_dash_left) if estado_atual == DASH_LEFT else len(sprites_dash_right)
@@ -193,8 +214,22 @@ def main():
                     direcao = "left" if estado_atual == DASH_LEFT else "right"
                     estado_atual = IDLE_LEFT if direcao == "left" else IDLE_RIGHT
 
+            # Mostrando na tela o ataque
             acao, sprites = acoes[estado_atual]
             acao()
+            renderizar(tela, sprites, personagem)
+            clock.tick(FRAME_RATE)
+            continue
+
+        # Crouch: personagem agacha e se levanta.
+        if crouching:
+            acao, sprites = acoes[estado_atual]
+            acao()
+            # Deixa iterando apenas sob os 4 frames finais para ficar agachado
+            sprites = sprites[-4:]
+            if agora - ultimo_tick > DELAY:
+                ultimo_tick = agora
+                personagem.frame = (personagem.frame + 1) % len(sprites)
             renderizar(tela, sprites, personagem)
             clock.tick(FRAME_RATE)
             continue
@@ -207,7 +242,8 @@ def main():
         elif teclas[alfabeto_teclas['a']]:
             simbolo = 'a'
             direcao = "left"
-        else: simbolo = None
+        else:
+            simbolo = None
 
         # Executando a ação
         estado_atual = afd.processar(simbolo)
