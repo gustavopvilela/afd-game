@@ -23,9 +23,11 @@ class Personagem:
         self.x -= self.distancia_movimento
 
     def crouch_right (self):
+        self.direcao_dash = "right"
         pass
 
     def crouch_left (self):
+        self.direcao_dash = "left"
         pass
 
     def hammer_right(self):

@@ -227,6 +227,20 @@ def main():
             acao()
             # Deixa iterando apenas sob os 4 frames finais para ficar agachado
             sprites = sprites[-4:]
+
+            # Verifica se 'd' ou 'a' foi pressionado, se sim, desloca o personagem para a esquerda ou direita.
+            teclas = pygame.key.get_pressed()
+            if teclas[alfabeto_teclas['d']]:
+                personagem.x += personagem.distancia_movimento-1
+                direcao = "right"
+                estado_atual = CROUCH_RIGHT
+            elif teclas[alfabeto_teclas['a']]:
+                personagem.x -= personagem.distancia_movimento-1
+                direcao = "left"
+                estado_atual = CROUCH_LEFT
+            else:
+                estado_atual = CROUCH_RIGHT if direcao=="right" else CROUCH_LEFT
+
             if agora - ultimo_tick > DELAY:
                 ultimo_tick = agora
                 personagem.frame = (personagem.frame + 1) % len(sprites)
