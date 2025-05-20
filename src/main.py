@@ -7,13 +7,18 @@ def renderizar (tela, sprites, personagem, x = None, y = None):
     if x is None: x = personagem.x
     if y is None: y = personagem.y
 
-    tela.fill((30, 30, 30))
-    tela.blit(sprites[personagem.frame], (x, y))
+    # Alinhar as bases dos sprites do personagem à altura em que ele está
+    img = sprites[personagem.frame]
+    rect = img.get_rect()
+    rect.x = x
+    rect.bottom = y
+    tela.blit(img, rect)
+
     pygame.display.flip()
 
 def main():
     # Definindo as constantes
-    FRAME_RATE = 60
+    FRAME_RATE = 70
 
     # Definindo os estados do personagem
     IDLE_RIGHT = "IDLE_RIGHT"
@@ -73,11 +78,16 @@ def main():
     w, h = 960, 540
     tela = pygame.display.set_mode((w, h))
     pygame.display.set_caption("Jogo com AFD")
+    icon = pygame.image.load("..\\sprites\\icon\\icon.jpg")
+    pygame.display.set_icon(icon)
     clock = pygame.time.Clock()
+
+    background = pygame.image.load('../sprites/background/background2.jpg').convert()
+    background = pygame.transform.scale(background, (w, h))
 
     # Controle dos frames do personagem
     ultimo_tick = pygame.time.get_ticks()
-    DELAY = 95  # Demora 95ms para transicionar de um frame para o outro
+    DELAY = 80  # Demora 95ms para transicionar de um frame para o outro
 
     # Criando o personagem
     personagem = Personagem(x = w // 2)
@@ -179,6 +189,7 @@ def main():
 
             # Renderizando
             personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
+            tela.blit(background, (0, 0))
             renderizar(tela, sprites, personagem)
             clock.tick(FRAME_RATE)
             continue
@@ -200,6 +211,7 @@ def main():
             acao, sprites = acoes[estado_atual]
             acao()
             personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
+            tela.blit(background, (0, 0))
             renderizar(tela, sprites, personagem)
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
@@ -222,6 +234,7 @@ def main():
             personagem.frame = (personagem.frame + 1) % len(sprites)
 
         # Renderização final
+        tela.blit(background, (0, 0))
         renderizar(tela, sprites, personagem)
         clock.tick(FRAME_RATE)
 

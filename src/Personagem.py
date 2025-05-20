@@ -1,5 +1,5 @@
 class Personagem:
-    def __init__(self, x = 100, y = 400):
+    def __init__(self, x = 100, y = 355):
         self.x = x
         self.y = y
         self.frame = 0
