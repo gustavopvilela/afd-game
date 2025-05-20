@@ -16,6 +16,11 @@ def renderizar (tela, sprites, personagem, x = None, y = None):
 
     pygame.display.flip()
 
+def desenhar_frame (personagem, w, h, sprites, tela, background):
+    personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
+    tela.blit(background, (0, 0))
+    renderizar(tela, sprites, personagem)
+
 def main():
     # Definindo as constantes
     FRAME_RATE = 70
@@ -28,6 +33,10 @@ def main():
     HAMMER_RIGHT = "HAMMER_RIGHT"
     HAMMER_LEFT = "HAMMER_LEFT"
     JUMP = "JUMP"
+    DASH_RIGHT = "DASH_RIGHT"
+    DASH_LEFT = "DASH_LEFT"
+    CROUCH_RIGHT = "CROUCH_RIGHT"
+    CROUCH_LEFT = "CROUCH_LEFT"
 
     # Definindo as teclas aceitas pelo programa
     alfabeto_teclas = {
@@ -35,6 +44,8 @@ def main():
         'd': pygame.K_d,
         'z': pygame.K_z,
         'w': pygame.K_w,
+        'f' : pygame.K_f,
+        's': pygame.K_s,
         None: None
     }
 
@@ -44,24 +55,38 @@ def main():
         (IDLE_RIGHT, 'a'): WALK_LEFT,
         (IDLE_RIGHT, None): IDLE_RIGHT,
         (IDLE_RIGHT, 'z'): HAMMER_RIGHT,
+        (IDLE_RIGHT, 'f'): DASH_RIGHT,
+        (IDLE_RIGHT, 's'): CROUCH_RIGHT,
 
         (IDLE_LEFT, 'd'): WALK_RIGHT,
         (IDLE_LEFT, 'a'): WALK_LEFT,
         (IDLE_LEFT, None): IDLE_LEFT,
         (IDLE_LEFT, 'z'): HAMMER_LEFT,
+        (IDLE_LEFT, 'f'): DASH_LEFT,
+        (IDLE_LEFT, 's'): CROUCH_LEFT,
 
         (WALK_RIGHT, 'd'): WALK_RIGHT,
         (WALK_RIGHT, 'a'): WALK_LEFT,
         (WALK_RIGHT, None): IDLE_RIGHT,
         (WALK_RIGHT, 'z'): HAMMER_RIGHT,
+        (WALK_RIGHT, 'f'): DASH_RIGHT,
+        (WALK_RIGHT, 's'): CROUCH_RIGHT,
 
         (WALK_LEFT, 'd'): WALK_RIGHT,
         (WALK_LEFT, 'a'): WALK_LEFT,
         (WALK_LEFT, None): IDLE_LEFT,
         (WALK_LEFT, 'z'): HAMMER_LEFT,
+        (WALK_LEFT, 'f'): DASH_LEFT,
+        (WALK_LEFT, 's'): CROUCH_LEFT,
 
         (HAMMER_LEFT, None): IDLE_LEFT,
         (HAMMER_RIGHT, None): IDLE_RIGHT,
+
+        (DASH_LEFT, None): IDLE_LEFT,
+        (DASH_RIGHT, None): IDLE_RIGHT,
+
+        (CROUCH_RIGHT, None): IDLE_RIGHT,
+        (CROUCH_LEFT, None): IDLE_LEFT,
     }
 
     # Criando o AFD para controlar o personagem
@@ -101,6 +126,10 @@ def main():
     sprites_hammer_left= Sprite.carregar_sprites("..\\sprites\\hammer\\left")
     sprites_jump_right = Sprite.carregar_sprites("..\\sprites\\jump\\right")
     sprites_jump_left = Sprite.carregar_sprites("..\\sprites\\jump\\left")
+    sprites_dash_right = Sprite.carregar_sprites("..\\sprites\\dash\\right")
+    sprites_dash_left = Sprite.carregar_sprites("..\\sprites\\dash\\left")
+    sprites_crouch_right = Sprite.carregar_sprites("..\\sprites\\crouch\\right")
+    sprites_crouch_left = Sprite.carregar_sprites("..\\sprites\\crouch\\left")
 
     # Definindo as ações realizadas pelo personagem
     acoes = {
@@ -111,11 +140,18 @@ def main():
         HAMMER_RIGHT:   (personagem.hammer_right, sprites_hammer_right),
         HAMMER_LEFT:    (personagem.hammer_left, sprites_hammer_left),
         # A ação de pular é tratada separadamente
+        DASH_RIGHT:     (personagem.idle, sprites_dash_right),
+        DASH_LEFT:      (personagem.idle, sprites_dash_left),
+        CROUCH_RIGHT:   (personagem.crouch_right, sprites_crouch_right),
+        CROUCH_LEFT:    (personagem.crouch_left, sprites_crouch_left)
     }
 
-    # Flag para controlar execução completa do hammer
+    # Flag para controlar execução completa do hammer e do dash
     hammering = False
+    dashing = False
+    crouching = False
     estado_atual = afd.estado_inicial
+    direcao = "right" if "RIGHT" in estado_atual else "left"
 
     # Variáveis para controlar o pulo do personagem
     jumping = False
@@ -160,6 +196,25 @@ def main():
                     velocidade_vertical = forca_pulo
                     personagem.frame = 0
 
+            # Apertando a tecla F, o personagem entra em modo dash.
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_f:
+                if not dashing:
+                    dashing = True
+                    personagem.frame = 0
+
+                    personagem.start_dash(direcao)
+                    estado_atual = DASH_RIGHT if direcao == "right" else DASH_LEFT
+
+            # Apertando a tecla S, o personagem agacha, se apertar S novamente, ele se levanta.
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_s:
+                crouching = not crouching
+                personagem.frame = 0
+                if crouching:
+                    crouching = True
+                    estado_atual = CROUCH_RIGHT if direcao == "right" else CROUCH_LEFT
+                else:
+                    estado_atual = IDLE_RIGHT if estado_atual == CROUCH_RIGHT else IDLE_LEFT
+
         # Renderizando o pulo
         if jumping:
             # Física vertical
@@ -188,9 +243,7 @@ def main():
                 personagem.frame = (personagem.frame + 1) % len(sprites)
 
             # Renderizando
-            personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
-            tela.blit(background, (0, 0))
-            renderizar(tela, sprites, personagem)
+            desenhar_frame(personagem, w, h, sprites, tela, background)
             clock.tick(FRAME_RATE)
             continue
 
@@ -202,7 +255,8 @@ def main():
                 personagem.frame += 1
 
                 # Se passou do último frame, encerra o ataque e volta a ficar parado (idle)
-                if personagem.frame >= len(sprites_hammer_left):
+                limite = len(sprites_hammer_left) if estado_atual == HAMMER_LEFT else len(sprites_hammer_right)
+                if personagem.frame >= limite:
                     hammering = False
                     personagem.frame = 0
                     estado_atual = IDLE_LEFT
@@ -210,23 +264,75 @@ def main():
             # Mostrando na tela o ataque
             acao, sprites = acoes[estado_atual]
             acao()
-            personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
-            tela.blit(background, (0, 0))
-            renderizar(tela, sprites, personagem)
+            desenhar_frame(personagem, w, h, sprites, tela, background)
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
 
+        # Dash: o personagem avança em um dash.
+        if dashing:
+            if agora - ultimo_tick > DELAY:
+                ultimo_tick = agora
+                personagem.frame += 1
+                personagem.update_dash()
+
+                limite = len(sprites_dash_left) if estado_atual == DASH_LEFT else len(sprites_dash_right)
+                if personagem.frame >= limite:
+                    dashing = False
+                    personagem.frame = 0
+
+                    direcao = "left" if estado_atual == DASH_LEFT else "right"
+                    estado_atual = IDLE_LEFT if direcao == "left" else IDLE_RIGHT
+
+            # Mostrando na tela o ataque
+            acao, sprites = acoes[estado_atual]
+            acao()
+            desenhar_frame(personagem, w, h, sprites, tela, background)
+            clock.tick(FRAME_RATE)
+            continue
+
+        # Crouch: personagem agacha e se levanta.
+        if crouching:
+            acao, sprites = acoes[estado_atual]
+            acao()
+            # Deixa iterando apenas sob os 4 frames finais para ficar agachado
+            sprites = sprites[-4:]
+
+            # Verifica se 'd' ou 'a' foi pressionado, se sim, desloca o personagem para a esquerda ou direita.
+            teclas = pygame.key.get_pressed()
+            if teclas[alfabeto_teclas['d']]:
+                personagem.x += personagem.velocidade_andando - 1
+                direcao = "right"
+                estado_atual = CROUCH_RIGHT
+            elif teclas[alfabeto_teclas['a']]:
+                personagem.x -= personagem.velocidade_andando - 1
+                direcao = "left"
+                estado_atual = CROUCH_LEFT
+            else:
+                estado_atual = CROUCH_RIGHT if direcao=="right" else CROUCH_LEFT
+
+            if agora - ultimo_tick > DELAY:
+                ultimo_tick = agora
+                personagem.frame = (personagem.frame + 1) % len(sprites)
+
+            desenhar_frame(personagem, w, h, sprites, tela, background)
+            clock.tick(FRAME_RATE)
+            continue
+
         # Transições normais (sem ataques e supers)
         teclas = pygame.key.get_pressed()
-        if teclas[alfabeto_teclas['d']]: simbolo = 'd'
-        elif teclas[alfabeto_teclas['a']]: simbolo = 'a'
-        else: simbolo = None
+        if teclas[alfabeto_teclas['d']]:
+            simbolo = 'd'
+            direcao = "right"
+        elif teclas[alfabeto_teclas['a']]:
+            simbolo = 'a'
+            direcao = "left"
+        else:
+            simbolo = None
 
         # Executando a ação
         estado_atual = afd.processar(simbolo)
         acao, sprites = acoes[estado_atual]
         acao()
-        personagem.stay_in_bounds(w, h, sprites[personagem.frame % len(sprites)].get_width(), sprites[personagem.frame % len(sprites)].get_height())
 
         # Atualização de frame normal
         if agora - ultimo_tick > DELAY:
@@ -234,8 +340,7 @@ def main():
             personagem.frame = (personagem.frame + 1) % len(sprites)
 
         # Renderização final
-        tela.blit(background, (0, 0))
-        renderizar(tela, sprites, personagem)
+        desenhar_frame(personagem, w, h, sprites, tela, background)
         clock.tick(FRAME_RATE)
 
     pygame.quit()
