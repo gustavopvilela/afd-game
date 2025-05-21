@@ -1,0 +1,5 @@
+# Arquivos de build
+build/
+dist/
+
+main.spec
