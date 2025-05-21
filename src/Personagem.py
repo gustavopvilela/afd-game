@@ -38,11 +38,17 @@ class Personagem:
     def hammer_left (self):
         pass # O personagem não se move
 
-    def stay_in_bounds(self, screen_width, screen_height, sprite_width, sprite_height):
-        if self.x < 0:
-            self.x = 0
-        elif self.x + sprite_width > screen_width:
-            self.x = screen_width - sprite_width
+    def super_right (self):
+        pass
+
+    def super_left (self):
+        pass
+
+    def stay_in_bounds(self, border_left, border_right, screen_height, sprite_width, sprite_height):
+        if self.x < border_left:
+            self.x = border_left
+        elif self.x + sprite_width > border_right:
+            self.x = border_right - sprite_width
 
         if self.y < 0:
             self.y = 0
