@@ -9,6 +9,8 @@ Este trabalho foi desenvolvido pelos alunos Gustavo Henrique Pereira Vilela e Ia
 
 Os sprites (imagens, frames) utilizados nestes códigos são do personagem Ori, protagonista dos jogos _[Ori and the Blind Forest](https://store.steampowered.com/app/387290/Ori_and_the_Blind_Forest_Definitive_Edition/?curator_clanid=37856651)_ e _[Ori and the Will of the Wisps](https://store.steampowered.com/app/1057090/Ori_and_the_Will_of_the_Wisps/?curator_clanid=37856651)_.
 
+[![Ori and the Will of the Wisps](https://img.youtube.com/vi/2reK8k8nwBc/maxresdefault.jpg)](https://www.youtube.com/watch?v=2reK8k8nwBc)
+
 <iframe width="560" height="315" src="https://www.youtube.com/embed/2reK8k8nwBc?si=FH1FM4WrwdAINn6j" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 Entretanto, as imagens de fato são da colaboração dos jogos anteriormente citados com o jogo _[Rivals of Aether](https://store.steampowered.com/app/383980/Rivals_of_Aether/)_, a _sprite sheet_ foi retirada do site _[DeviantArt](https://www.deviantart.com/1fishmob/art/Ori-Rivals-of-Aether-Sprite-Sheet-863060378)_, todos os créditos aos seus devidos criadores.
