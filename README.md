@@ -55,6 +55,8 @@ O ataque feito por Ori é seu ataque de martelo presente em seu jogo _Ori and th
 
 ### _Super_ (combo)
 
+![Super](assets/super.gif)
+
 O combo aqui é definido como uma sequência de teclas que devem ser apertadas em ordem e simultaneamente para que um ataque especial ocorra. Ao pressionar as teclas `O`, `R` e `I` – formando a palavra "_Ori_", será mostrado em tela uma animação especial como seu super.
 
 ---
