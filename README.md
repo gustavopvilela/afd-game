@@ -51,7 +51,13 @@ Clicando na tecla `F`, o personagem dará uma corrida rápida para uma direção
 
 ![Hammer](assets/hammer.gif)
 
-O ataque feito por Ori é seu ataque de martelo presente em seu jogo _Ori and the Will of the Wisps_. Aqui, ele é realizado ao pressionar a tecla `Z`. A direção do ataque será a mesma que o personagem estiver olhando no momento: esquerda ou direita.
+O primeiro ataque feito por Ori é seu ataque de martelo presente em seu jogo _Ori and the Will of the Wisps_. Aqui, ele é realizado ao pressionar a tecla `Z`. A direção do ataque será a mesma que o personagem estiver olhando no momento: esquerda ou direita.
+
+### _Energy Explosion_ (Ataque de explosão de energia)
+
+![Energy Explosion](assets/energyexplosion.gif)
+
+O segundo ataque feito por Ori é seu ataque de explosão de energia presente na colaboração do jogo original com _Rivals of Aether_. Aqui, ele é realizado ao pressionar a tecla `E`. A direção do ataque será a mesma que o personagem estiver olhando no momento: esquerda ou direita.
 
 ### _Super_ (combo)
 
