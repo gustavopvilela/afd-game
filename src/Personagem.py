@@ -38,6 +38,12 @@ class Personagem:
     def hammer_left (self):
         pass # O personagem não se move
 
+    def energyexplosion_right (self):
+        pass
+
+    def energyexplosion_left (self):
+        pass
+
     def super_right (self):
         pass
 
