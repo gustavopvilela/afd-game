@@ -47,6 +47,8 @@ def main():
     DASH_LEFT = "DASH_LEFT"
     CROUCH_RIGHT = "CROUCH_RIGHT"
     CROUCH_LEFT = "CROUCH_LEFT"
+    ENERGYEXPLOSION_RIGHT = "ENERGYEXPLOSION_RIGHT"
+    ENERGYEXPLOSION_LEFT = "ENERGYEXPLOSION_LEFT"
 
     COMBO_I_LEFT = "COMBO_I_LEFT"
     COMBO_N_LEFT = "COMBO_N_LEFT"
@@ -67,6 +69,7 @@ def main():
         'o': pygame.K_o,
         'r': pygame.K_r,
         'i': pygame.K_i,
+        'e': pygame.K_e,
         None: None
     }
 
@@ -78,6 +81,7 @@ def main():
         (IDLE_RIGHT, 'z'): HAMMER_RIGHT,
         (IDLE_RIGHT, 'f'): DASH_RIGHT,
         (IDLE_RIGHT, 's'): CROUCH_RIGHT,
+        (IDLE_RIGHT, 'e'): ENERGYEXPLOSION_RIGHT,
         # (IDLE_RIGHT, 'i'): COMBO_I_RIGHT,
 
         (IDLE_LEFT, 'd'): WALK_RIGHT,
@@ -86,6 +90,7 @@ def main():
         (IDLE_LEFT, 'z'): HAMMER_LEFT,
         (IDLE_LEFT, 'f'): DASH_LEFT,
         (IDLE_LEFT, 's'): CROUCH_LEFT,
+        (IDLE_LEFT, 'e'): ENERGYEXPLOSION_LEFT,
         # (IDLE_LEFT, 'i'): COMBO_I_LEFT,
 
         (WALK_RIGHT, 'd'): WALK_RIGHT,
@@ -94,6 +99,7 @@ def main():
         (WALK_RIGHT, 'z'): HAMMER_RIGHT,
         (WALK_RIGHT, 'f'): DASH_RIGHT,
         (WALK_RIGHT, 's'): CROUCH_RIGHT,
+        (WALK_RIGHT, 'e'): ENERGYEXPLOSION_RIGHT,
         # (WALK_RIGHT, 'i'): COMBO_I_RIGHT,
 
         (WALK_LEFT, 'd'): WALK_RIGHT,
@@ -102,6 +108,7 @@ def main():
         (WALK_LEFT, 'z'): HAMMER_LEFT,
         (WALK_LEFT, 'f'): DASH_LEFT,
         (WALK_LEFT, 's'): CROUCH_LEFT,
+        (WALK_LEFT, 'e'): ENERGYEXPLOSION_LEFT,
         # (WALK_LEFT, 'i'): COMBO_I_LEFT,
 
         (HAMMER_LEFT, None): IDLE_LEFT,
@@ -112,6 +119,9 @@ def main():
 
         (CROUCH_RIGHT, None): IDLE_RIGHT,
         (CROUCH_LEFT, None): IDLE_LEFT,
+
+        (ENERGYEXPLOSION_LEFT, None): IDLE_LEFT,
+        (ENERGYEXPLOSION_RIGHT, None): IDLE_RIGHT,
 
         # Sequência para o combo para a esquerda
         # (COMBO_I_LEFT, 'n'): COMBO_N_LEFT,
@@ -215,15 +225,19 @@ def main():
     sprites_crouch_left = Sprite.carregar_sprites("../sprites/crouch/left")
     sprites_super_right = Sprite.carregar_sprites("../sprites/super/right")
     sprites_super_left = Sprite.carregar_sprites("../sprites/super/left")
+    sprites_energyexplosion_right = Sprite.carregar_sprites("../sprites/energyexplosion/right")
+    sprites_energyexplosion_left = Sprite.carregar_sprites("../sprites/energyexplosion/left")
 
     # Definindo as ações realizadas pelo personagem
     acoes = {
-        IDLE_RIGHT:     (personagem.idle, sprites_idle_right),
-        IDLE_LEFT:      (personagem.idle, sprites_idle_left),
-        WALK_RIGHT:     (personagem.walk_right, sprites_walk_right),
-        WALK_LEFT:      (personagem.walk_left, sprites_walk_left),
-        HAMMER_RIGHT:   (personagem.hammer_right, sprites_hammer_right),
-        HAMMER_LEFT:    (personagem.hammer_left, sprites_hammer_left),
+        IDLE_RIGHT:            (personagem.idle, sprites_idle_right),
+        IDLE_LEFT:             (personagem.idle, sprites_idle_left),
+        WALK_RIGHT:            (personagem.walk_right, sprites_walk_right),
+        WALK_LEFT:             (personagem.walk_left, sprites_walk_left),
+        HAMMER_RIGHT:          (personagem.hammer_right, sprites_hammer_right),
+        HAMMER_LEFT:           (personagem.hammer_left, sprites_hammer_left),
+        ENERGYEXPLOSION_RIGHT: (personagem.energyexplosion_right, sprites_energyexplosion_right),
+        ENERGYEXPLOSION_LEFT:  (personagem.energyexplosion_left, sprites_energyexplosion_left),
 
         # A ação de pular é tratada separadamente
 
@@ -244,6 +258,7 @@ def main():
     hammering = False
     dashing = False
     crouching = False
+    exploding = False
     estado_atual = afd.estado_inicial
     direcao = "right" if "RIGHT" in estado_atual else "left"
 
@@ -288,6 +303,20 @@ def main():
                     hammering = True
                     personagem.frame = 0
                     estado_atual = HAMMER_RIGHT
+
+            # Apertando a tecla E e olhando para a direita, o personagem entra em modo de ataque com a explosão de energia para a direita.
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_e and "RIGHT" in estado_atual:
+                if not exploding:
+                    exploding = True
+                    personagem.frame = 0
+                    estado_atual = ENERGYEXPLOSION_RIGHT
+
+            # Apertando a tecla E e olhando para a esquerda, o personagem entra em modo de ataque com a explosão de energia para a esquerda.
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_e and "LEFT" in estado_atual:
+                if not exploding:
+                    exploding = True
+                    personagem.frame = 0
+                    estado_atual = ENERGYEXPLOSION_LEFT
 
             # Tratando o evento de pulo
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_w:
@@ -464,6 +493,27 @@ def main():
             desenhar_frame(personagem, h, sprites, tela, background, fade, alpha, kuro, alpha_kuro)
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
+
+        # Ataque 2: Ataque de explosão de energia
+        if exploding:
+            if agora - ultimo_tick > DELAY:
+                ultimo_tick = agora
+                personagem.frame += 1
+
+                # Se passou do último frame, encerra o ataque e volta a ficar parado (idle)
+                limite = len(sprites_energyexplosion_left) if estado_atual == ENERGYEXPLOSION_LEFT else len(sprites_energyexplosion_right)
+                if personagem.frame >= limite:
+                    exploding = False
+                    personagem.frame = 0
+                    estado_atual = IDLE_LEFT
+
+            # Mostrando na tela o ataque
+            acao, sprites = acoes[estado_atual]
+            acao()
+            desenhar_frame(personagem, h, sprites, tela, background, fade, alpha, kuro, alpha_kuro)
+            clock.tick(FRAME_RATE)
+            continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
+
 
         # Dash: o personagem avança em um dash.
         if dashing:
