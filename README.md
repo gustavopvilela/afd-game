@@ -11,7 +11,7 @@ Os sprites (imagens, frames) utilizados nestes códigos são do personagem Ori, 
 
 [![Ori and the Will of the Wisps](https://img.youtube.com/vi/2reK8k8nwBc/maxresdefault.jpg)](https://www.youtube.com/watch?v=2reK8k8nwBc)
 
-Entretanto, as imagens de fato são da colaboração dos jogos anteriormente citados com o jogo _[Rivals of Aether](https://store.steampowered.com/app/383980/Rivals_of_Aether/)_, a _sprite sheet_ foi retirada do site _[DeviantArt](https://www.deviantart.com/1fishmob/art/Ori-Rivals-of-Aether-Sprite-Sheet-863060378)_, todos os créditos aos seus devidos criadores.
+Entretanto, as imagens de fato são da colaboração dos jogos anteriormente citados com o jogo _[Rivals of Aether](https://store.steampowered.com/app/383980/Rivals_of_Aether/)_, a _sprite sheet_ foi retirada do site _[DeviantArt](https://www.deviantart.com/1fishmob/art/Ori-Rivals-of-Aether-Sprite-Sheet-863060378)_, todos os créditos aos seus devidos criadores. Este trabalho não possui fins lucrativos.
 
 ## Funções do programa
 
