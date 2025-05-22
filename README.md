@@ -19,25 +19,37 @@ A seguir, serão apresentadas as funções principais dos algoritmos presentes n
 
 ### _Idle_ (ficar parado)
 
+![Idle](assets/idle.gif)
+
 É a posição padrão do personagem. Ao não pressionar nenhuma tecla, ele ficará parado em sua posição atual.
 
 ### _Walk_ (andar)
+
+![Walk](assets/walk.gif)
 
 Ao pressionar a tecla `A` ou `D`, o personagem fará um andado normal para a esquerda ou direita, respectivamente. Ao mantê-las pressionadas, Ori andará até chegar ao limite definido para a tela.
 
 ### _Jump_ (pular)
 
+![Jump](assets/jump.gif)
+
 Ao clicar na tecla `W`, Ori dará um grande salto. Este salto pode ser modificado pelas teclas `A` ou `D`, que o fará movimentar no ar para a esquerda ou direita, respectivamente. Por estar pulando, este movimento é mais rápido que o andado comum.
 
 ### _Crouch_ (agachar)
+
+![Crouch](assets/crouch.gif)
 
 Pressionando a tecla `S`, o personagem agachará. Esse movimento pode ser modificado pelas teclas `A` ou `D`, que o farão mover de forma agachada para a esqueda ou direita, respectivamente. Vale notar que este movimento é mais lento que o andado normal, justamente por ele estar agachado.
 
 ### _Dash_
 
+![Dash](assets/dash.gif)
+
 Clicando na tecla `F`, o personagem dará uma corrida rápida para uma direção, percorrendo diversos pixels de uma só vez. Essa ação é influenciada pelo lado que Ori estiver olhando no momento: esquerda ou direita.
 
 ### _Hammer_ (Ataque de martelo)
+
+![Hammer](assets/hammer.gif)
 
 O ataque feito por Ori é seu ataque de martelo presente em seu jogo _Ori and the Will of the Wisps_. Aqui, ele é realizado ao pressionar a tecla `Z`. A direção do ataque será a mesma que o personagem estiver olhando no momento: esquerda ou direita.
 
