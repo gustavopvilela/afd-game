@@ -1,3 +1,5 @@
+import time
+
 from AFD import *
 from Personagem import *
 from Sprite import *
@@ -31,6 +33,25 @@ def desenhar_frame (personagem, h, sprites, tela, background, fade, alpha, kuro,
     tela.blit(background, (0, 0))
     renderizar(tela, sprites, personagem, fade, alpha, kuro, alpha_kuro)
 
+# Função de fazer fade-out na música para o super
+def music_fade_out (duracao=1.0, volume_max=0.3):
+    passos = 20
+    delay = duracao / passos
+    for i in range (passos):
+        vol = volume_max * (1.0 - (i + 1) / passos)
+        pygame.mixer.music.set_volume(vol)
+        time.sleep(delay)
+    pygame.mixer.music.pause()
+
+def music_fade_in (duracao=1.0, volume_max=0.3):
+    passos = 20
+    delay = duracao / passos
+    pygame.mixer.music.unpause()
+    for i in range (passos):
+        vol = volume_max * (i + 1) / passos
+        pygame.mixer.music.set_volume(vol)
+        time.sleep(delay)
+
 def main():
     # Definindo as constantes
     FRAME_RATE = 70
@@ -49,13 +70,7 @@ def main():
     CROUCH_LEFT = "CROUCH_LEFT"
     ENERGYEXPLOSION_RIGHT = "ENERGYEXPLOSION_RIGHT"
     ENERGYEXPLOSION_LEFT = "ENERGYEXPLOSION_LEFT"
-
-    COMBO_I_LEFT = "COMBO_I_LEFT"
-    COMBO_N_LEFT = "COMBO_N_LEFT"
     SUPER_LEFT = "SUPER_LEFT"
-
-    COMBO_I_RIGHT = "COMBO_I_RIGHT"
-    COMBO_N_RIGHT = "COMBO_N_RIGHT"
     SUPER_RIGHT = "SUPER_RIGHT"
 
     # Definindo as teclas aceitas pelo programa
@@ -82,7 +97,6 @@ def main():
         (IDLE_RIGHT, 'f'): DASH_RIGHT,
         (IDLE_RIGHT, 's'): CROUCH_RIGHT,
         (IDLE_RIGHT, 'e'): ENERGYEXPLOSION_RIGHT,
-        # (IDLE_RIGHT, 'i'): COMBO_I_RIGHT,
 
         (IDLE_LEFT, 'd'): WALK_RIGHT,
         (IDLE_LEFT, 'a'): WALK_LEFT,
@@ -91,7 +105,6 @@ def main():
         (IDLE_LEFT, 'f'): DASH_LEFT,
         (IDLE_LEFT, 's'): CROUCH_LEFT,
         (IDLE_LEFT, 'e'): ENERGYEXPLOSION_LEFT,
-        # (IDLE_LEFT, 'i'): COMBO_I_LEFT,
 
         (WALK_RIGHT, 'd'): WALK_RIGHT,
         (WALK_RIGHT, 'a'): WALK_LEFT,
@@ -100,7 +113,6 @@ def main():
         (WALK_RIGHT, 'f'): DASH_RIGHT,
         (WALK_RIGHT, 's'): CROUCH_RIGHT,
         (WALK_RIGHT, 'e'): ENERGYEXPLOSION_RIGHT,
-        # (WALK_RIGHT, 'i'): COMBO_I_RIGHT,
 
         (WALK_LEFT, 'd'): WALK_RIGHT,
         (WALK_LEFT, 'a'): WALK_LEFT,
@@ -109,7 +121,6 @@ def main():
         (WALK_LEFT, 'f'): DASH_LEFT,
         (WALK_LEFT, 's'): CROUCH_LEFT,
         (WALK_LEFT, 'e'): ENERGYEXPLOSION_LEFT,
-        # (WALK_LEFT, 'i'): COMBO_I_LEFT,
 
         (HAMMER_LEFT, None): IDLE_LEFT,
         (HAMMER_RIGHT, None): IDLE_RIGHT,
@@ -122,44 +133,6 @@ def main():
 
         (ENERGYEXPLOSION_LEFT, None): IDLE_LEFT,
         (ENERGYEXPLOSION_RIGHT, None): IDLE_RIGHT,
-
-        # Sequência para o combo para a esquerda
-        # (COMBO_I_LEFT, 'n'): COMBO_N_LEFT,
-        # (COMBO_I_LEFT, 'a'): WALK_LEFT,
-        # (COMBO_I_LEFT, 'd'): WALK_RIGHT,
-        # (COMBO_I_LEFT, 'z'): HAMMER_LEFT,
-        # (COMBO_I_LEFT, 'f'): DASH_LEFT,
-        # (COMBO_I_LEFT, 's'): CROUCH_LEFT,
-        # (COMBO_I_LEFT, None): COMBO_I_LEFT,
-        #
-        # (COMBO_N_LEFT, 'k'): SUPER_LEFT,
-        # (COMBO_N_LEFT, 'a'): WALK_LEFT,
-        # (COMBO_N_LEFT, 'd'): WALK_RIGHT,
-        # (COMBO_N_LEFT, 'z'): HAMMER_LEFT,
-        # (COMBO_N_LEFT, 'f'): DASH_LEFT,
-        # (COMBO_N_LEFT, 's'): CROUCH_LEFT,
-        # (COMBO_N_LEFT, None): COMBO_N_LEFT,
-        #
-        # (SUPER_LEFT, None): SUPER_LEFT,
-
-        # Sequência para o combo para a direita
-        # (COMBO_I_RIGHT, 'n'): COMBO_N_RIGHT,
-        # (COMBO_I_RIGHT, 'a'): WALK_LEFT,
-        # (COMBO_I_RIGHT, 'd'): WALK_RIGHT,
-        # (COMBO_I_RIGHT, 'z'): HAMMER_RIGHT,
-        # (COMBO_I_RIGHT, 'f'): DASH_RIGHT,
-        # (COMBO_I_RIGHT, 's'): CROUCH_RIGHT,
-        # (COMBO_I_RIGHT, None): COMBO_I_RIGHT,
-        #
-        # (COMBO_N_RIGHT, 'k'): SUPER_RIGHT,
-        # (COMBO_N_RIGHT, 'a'): WALK_RIGHT,
-        # (COMBO_N_RIGHT, 'd'): WALK_LEFT,
-        # (COMBO_N_RIGHT, 'z'): HAMMER_RIGHT,
-        # (COMBO_N_RIGHT, 'f'): DASH_RIGHT,
-        # (COMBO_N_RIGHT, 's'): CROUCH_RIGHT,
-        # (COMBO_N_RIGHT, None): COMBO_N_RIGHT,
-        #
-        # (SUPER_RIGHT, None): SUPER_RIGHT
     }
 
     # Criando o AFD para controlar o personagem
@@ -173,6 +146,7 @@ def main():
 
     # Inicialização do PyGame
     pygame.init()
+    pygame.mixer.init()
     w, h = 960, 540
     tela = pygame.display.set_mode((w, h))
     pygame.display.set_caption("Jogo com AFD")
@@ -183,6 +157,40 @@ def main():
     # Definição da imagem de fundo
     background = pygame.image.load('../sprites/background/background2.jpg').convert()
     background = pygame.transform.scale(background, (w, h))
+
+    # Definição dos sons
+    jump_sound = pygame.mixer.Sound('../sounds/jump_sound.wav')
+    jump_sound.set_volume(0.5)
+    jump_sound_playing = False
+
+    dash_sound = pygame.mixer.Sound('../sounds/dash_sound.wav')
+    dash_sound.set_volume(0.5)
+    dash_sound_playing = False
+
+    super_sound = pygame.mixer.Sound('../sounds/super_sound.wav')
+    super_sound.set_volume(0.5)
+    super_sound_playing = False
+
+    super_explosion_sound = pygame.mixer.Sound('../sounds/super_explosion_sound.wav')
+    super_explosion_sound.set_volume(0.5)
+    super_explosion_sound_playing = False
+
+    super_launch_sound = pygame.mixer.Sound('../sounds/super_launch_sound.wav')
+    super_launch_sound.set_volume(0.5)
+    super_launch_sound_playing = False
+
+    hammer_sound = pygame.mixer.Sound('../sounds/hammer_sound.wav')
+    hammer_sound.set_volume(0.5)
+    hammer_sound_playing = False
+
+    energy_explosion_sound = pygame.mixer.Sound('../sounds/energy_explosion_sound.wav')
+    energy_explosion_sound.set_volume(0.5)
+    energy_explosion_sound_playing = False
+
+    # Soundtrack
+    pygame.mixer.music.load('../sounds/luma_pools.mp3')
+    pygame.mixer.music.play(loops=-1, fade_ms=2000)
+    pygame.mixer.music.set_volume(0.3)
 
     # Definição para o fade do super
     fade = pygame.Surface((w, h))
@@ -346,9 +354,17 @@ def main():
 
         # Renderizando o super
         if supering:
+            if not super_explosion_sound_playing:
+                super_explosion_sound.play()
+                super_explosion_sound_playing = True
+
             if agora - ultimo_tick > DELAY:
                 ultimo_tick = agora
                 personagem.frame += 1
+
+                if personagem.frame == 14 and not super_launch_sound_playing:
+                    super_launch_sound.play()
+                    super_launch_sound_playing = True
 
                 if personagem.frame > 16:
                     desloc_y = 30 * (3986 / 1000)
@@ -357,6 +373,8 @@ def main():
                 # Se passou do último frame, encerra o super e volta a ficar parado (idle)
                 limite = len(sprites_super_right) if estado_atual == SUPER_RIGHT else len(sprites_super_left)
                 if personagem.frame >= limite:
+                    music_fade_out()
+
                     # supering = False
                     personagem.frame = 0
                     estado_atual = IDLE_RIGHT if estado_atual == SUPER_RIGHT else IDLE_LEFT
@@ -367,6 +385,10 @@ def main():
 
                 # Renderizando o fade
                 if fading_out:
+                    if not super_sound_playing:
+                        super_sound.play()
+                        super_sound_playing = True
+
                     elapsed = pygame.time.get_ticks() - fade_start
                     personagem.frame = 0
 
@@ -433,6 +455,15 @@ def main():
                         # fade-in completamente
                         supering = False
 
+                        # Voltamos a definir a variável do som como False para que
+                        # ela possa voltar a tocar no próximo super
+                        super_sound_playing = False
+                        super_explosion_sound_playing = False
+                        super_explosion_sound_playing = False
+
+                        # Depois do super, a música volta a tocar normalmente
+                        music_fade_in()
+
             acao, sprites = acoes[estado_atual]
             acao()
             desenhar_frame(personagem, h, sprites, tela, background, fade, alpha, kuro, alpha_kuro)
@@ -441,6 +472,10 @@ def main():
 
         # Renderizando o pulo
         if jumping:
+            if not jump_sound_playing:
+                jump_sound.play()
+                jump_sound_playing = True
+
             # Física vertical
             personagem.y += velocidade_vertical
             velocidade_vertical += gravidade
@@ -461,6 +496,7 @@ def main():
                 personagem.frame = 0
                 estado_atual = IDLE_RIGHT if direcao_pulo > 0 else IDLE_LEFT
                 crouching = False
+                jump_sound_playing = False
 
             sprites = sprites_jump_right if direcao_pulo > 0 else sprites_jump_left
 
@@ -476,6 +512,10 @@ def main():
         # Nesta parte do código, colocaremos as animações que devem ser feitas separadamente (ataques e supers).
         # Ataque 1: Ataque de martelo
         if hammering:
+            if not hammer_sound_playing:
+                hammer_sound.play()
+                hammer_sound_playing = True
+
             if agora - ultimo_tick > DELAY:
                 ultimo_tick = agora
                 personagem.frame += 1
@@ -487,6 +527,9 @@ def main():
                     personagem.frame = 0
                     estado_atual = IDLE_LEFT
 
+                    # Volta o som para tocar no próximo ataque
+                    hammer_sound_playing = False
+
             # Mostrando na tela o ataque
             acao, sprites = acoes[estado_atual]
             acao()
@@ -496,6 +539,10 @@ def main():
 
         # Ataque 2: Ataque de explosão de energia
         if exploding:
+            if not energy_explosion_sound_playing:
+                energy_explosion_sound.play()
+                energy_explosion_sound_playing = True
+
             if agora - ultimo_tick > DELAY:
                 ultimo_tick = agora
                 personagem.frame += 1
@@ -507,6 +554,8 @@ def main():
                     personagem.frame = 0
                     estado_atual = IDLE_LEFT
 
+                    energy_explosion_sound_playing = False
+
             # Mostrando na tela o ataque
             acao, sprites = acoes[estado_atual]
             acao()
@@ -517,6 +566,10 @@ def main():
 
         # Dash: o personagem avança em um dash.
         if dashing:
+            if not dash_sound_playing:
+                dash_sound.play()
+                dash_sound_playing = True
+
             if agora - ultimo_tick > DELAY:
                 ultimo_tick = agora
                 personagem.frame += 1
@@ -529,6 +582,8 @@ def main():
 
                     direcao = "left" if estado_atual == DASH_LEFT else "right"
                     estado_atual = IDLE_LEFT if direcao == "left" else IDLE_RIGHT
+
+                    dash_sound_playing = False
 
             # Mostrando na tela o ataque
             acao, sprites = acoes[estado_atual]
