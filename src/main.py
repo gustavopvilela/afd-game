@@ -34,7 +34,7 @@ def desenhar_frame (personagem, h, sprites, tela, background, fade, alpha, kuro,
     renderizar(tela, sprites, personagem, fade, alpha, kuro, alpha_kuro)
 
 # Função de fazer fade-out na música para o super
-def music_fade_out (duracao=1.0, volume_max=0.3):
+def music_fade_out (duracao=1.0, volume_max=1.0):
     passos = 20
     delay = duracao / passos
     for i in range (passos):
@@ -43,7 +43,7 @@ def music_fade_out (duracao=1.0, volume_max=0.3):
         time.sleep(delay)
     pygame.mixer.music.pause()
 
-def music_fade_in (duracao=1.0, volume_max=0.3):
+def music_fade_in (duracao=1.0, volume_max=1.0):
     passos = 20
     delay = duracao / passos
     pygame.mixer.music.unpause()
@@ -160,37 +160,37 @@ def main():
 
     # Definição dos sons
     jump_sound = pygame.mixer.Sound('../sounds/jump_sound.wav')
-    jump_sound.set_volume(0.5)
+    jump_sound.set_volume(1.0)
     jump_sound_playing = False
 
     dash_sound = pygame.mixer.Sound('../sounds/dash_sound.wav')
-    dash_sound.set_volume(0.5)
+    dash_sound.set_volume(1.0)
     dash_sound_playing = False
 
     super_sound = pygame.mixer.Sound('../sounds/super_sound.wav')
-    super_sound.set_volume(0.5)
+    super_sound.set_volume(1.0)
     super_sound_playing = False
 
     super_explosion_sound = pygame.mixer.Sound('../sounds/super_explosion_sound.wav')
-    super_explosion_sound.set_volume(0.5)
+    super_explosion_sound.set_volume(1.0)
     super_explosion_sound_playing = False
 
     super_launch_sound = pygame.mixer.Sound('../sounds/super_launch_sound.wav')
-    super_launch_sound.set_volume(0.5)
+    super_launch_sound.set_volume(1.0)
     super_launch_sound_playing = False
 
     hammer_sound = pygame.mixer.Sound('../sounds/hammer_sound.wav')
-    hammer_sound.set_volume(0.5)
+    hammer_sound.set_volume(1.0)
     hammer_sound_playing = False
 
     energy_explosion_sound = pygame.mixer.Sound('../sounds/energy_explosion_sound.wav')
-    energy_explosion_sound.set_volume(0.5)
+    energy_explosion_sound.set_volume(1.0)
     energy_explosion_sound_playing = False
 
     # Soundtrack
     pygame.mixer.music.load('../sounds/luma_pools.mp3')
     pygame.mixer.music.play(loops=-1, fade_ms=2000)
-    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.set_volume(1.0)
 
     # Definição para o fade do super
     fade = pygame.Surface((w, h))
