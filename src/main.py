@@ -1,3 +1,4 @@
+import sys
 import time
 
 from AFD import *
@@ -277,6 +278,14 @@ def main():
     forca_pulo = -25  # Velocidade inicial do pulo
     y_chao = personagem.y
 
+    # Reconhecendo a sequência de teclas dada como argumento na inicialização do código
+    modo_seq = False
+    seq = []
+    idx = 0
+    if len(sys.argv) > 1:
+        modo_seq = True
+        seq = list(sys.argv[1])
+
     em_execucao = True
     while em_execucao:
         # Apertando a sequência de teclas, ele ativa o super
@@ -289,6 +298,58 @@ def main():
         direcao_pulo = +1 if "RIGHT" in estado_atual else -1
 
         agora = pygame.time.get_ticks()
+
+        # Primeiro, trataremos os eventos individuais do PyGame
+        # na forma de entrada de argumentos.
+        if modo_seq:
+            if idx < len(seq) and not any([exploding, hammering, jumping, dashing, supering]):
+                # Para que essas ações aconteçam, nenhuma das outras pode estar acontecendo
+
+                match seq[idx].lower():
+                    case 'z':
+                        if "RIGHT" in estado_atual:
+                            if not hammering:
+                                hammering = True
+                                personagem.frame = 0
+                                estado_atual = HAMMER_RIGHT
+                        else:
+                            if not hammering:
+                                hammering = True
+                                personagem.frame = 0
+                                estado_atual = HAMMER_LEFT
+                        idx += 1
+                    case 'e':
+                        if "RIGHT" in estado_atual:
+                            if not exploding:
+                                exploding = True
+                                personagem.frame = 0
+                                estado_atual = ENERGYEXPLOSION_RIGHT
+                        else:
+                            if not exploding:
+                                exploding = True
+                                personagem.frame = 0
+                                estado_atual = ENERGYEXPLOSION_LEFT
+                        idx += 1
+                    case 'w':
+                        jumping = True
+                        velocidade_vertical = forca_pulo
+                        personagem.frame = 0
+                        idx += 1
+                    case 'f':
+                        dashing = True
+                        personagem.frame = 0
+                        personagem.start_dash(direcao)
+                        estado_atual = DASH_RIGHT if direcao == "right" else DASH_LEFT
+                        idx += 1
+                    case 's':
+                        crouching = not crouching
+                        personagem.frame = 0
+                        if crouching:
+                            crouching = True
+                            estado_atual = CROUCH_RIGHT if direcao == "right" else CROUCH_LEFT
+                        else:
+                            estado_atual = IDLE_RIGHT if estado_atual == CROUCH_RIGHT else IDLE_LEFT
+                        idx += 1
 
         # Devemos tratar os eventos que interrompam o loop de execução, como animações em que o personagem precisa
         # ficar parado, por exemplo, em ataques.
@@ -354,6 +415,12 @@ def main():
 
         # Renderizando o super
         if supering:
+            # Garantindo que as outras ações não interferirão no super
+            hammering = False
+            jumping = False
+            dashing = False
+            exploding = False
+
             if not super_explosion_sound_playing:
                 super_explosion_sound.play()
                 super_explosion_sound_playing = True
@@ -472,6 +539,12 @@ def main():
 
         # Renderizando o pulo
         if jumping:
+            # Garantindo que as outras ações não causarão interferência no pulo
+            exploding = False
+            dashing = False
+            hammering = False
+            supering = False
+
             if not jump_sound_playing:
                 jump_sound.play()
                 jump_sound_playing = True
@@ -482,12 +555,14 @@ def main():
 
             # Controle horizontal no ar
             teclas = pygame.key.get_pressed()
-            if teclas[pygame.K_a]:
+            if teclas[pygame.K_a] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'a'):
                 personagem.x -= personagem.velocidade_pulando
                 direcao_pulo = -1
-            elif teclas[pygame.K_d]:
+                idx += 1
+            elif teclas[pygame.K_d] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'd'):
                 personagem.x += personagem.velocidade_pulando
                 direcao_pulo = +1
+                idx += 1
 
             # Aterrissagem
             if personagem.y >= y_chao:
@@ -512,6 +587,12 @@ def main():
         # Nesta parte do código, colocaremos as animações que devem ser feitas separadamente (ataques e supers).
         # Ataque 1: Ataque de martelo
         if hammering:
+            # Garantindo que as outras ações não interferirão no hammer
+            dashing = False
+            supering = False
+            jumping = False
+            exploding = False
+
             if not hammer_sound_playing:
                 hammer_sound.play()
                 hammer_sound_playing = True
@@ -539,6 +620,12 @@ def main():
 
         # Ataque 2: Ataque de explosão de energia
         if exploding:
+            # Garantindo que as outras ações não interferirão no exploding
+            dashing = False
+            supering = False
+            jumping = False
+            hammering = False
+
             if not energy_explosion_sound_playing:
                 energy_explosion_sound.play()
                 energy_explosion_sound_playing = True
@@ -566,6 +653,12 @@ def main():
 
         # Dash: o personagem avança em um dash.
         if dashing:
+            # Garantindo que as outras ações não interferirão no dash
+            jumping = False
+            supering = False
+            hammering = False
+            exploding = False
+
             if not dash_sound_playing:
                 dash_sound.play()
                 dash_sound_playing = True
@@ -601,14 +694,16 @@ def main():
 
             # Verifica se 'd' ou 'a' foi pressionado, se sim, desloca o personagem para a esquerda ou direita.
             teclas = pygame.key.get_pressed()
-            if teclas[alfabeto_teclas['d']]:
+            if teclas[alfabeto_teclas['d']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'd'):
                 personagem.x += personagem.velocidade_andando - 2
                 direcao = "right"
                 estado_atual = CROUCH_RIGHT
-            elif teclas[alfabeto_teclas['a']]:
+                if modo_seq: idx += 1
+            elif teclas[alfabeto_teclas['a']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'a'):
                 personagem.x -= personagem.velocidade_andando - 2
                 direcao = "left"
                 estado_atual = CROUCH_LEFT
+                if modo_seq: idx += 1
             else:
                 estado_atual = CROUCH_RIGHT if direcao=="right" else CROUCH_LEFT
 
@@ -623,14 +718,18 @@ def main():
         # Transições normais (sem ataques e supers)
         teclas = pygame.key.get_pressed()
 
-        if teclas[alfabeto_teclas['d']]:
+        if teclas[alfabeto_teclas['d']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'd'):
             simbolo = 'd'
             direcao = "right"
-        elif teclas[alfabeto_teclas['a']]:
+            idx += 1
+        elif teclas[alfabeto_teclas['a']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'a'):
             simbolo = 'a'
             direcao = "left"
-        elif teclas[alfabeto_teclas['o']] and teclas[alfabeto_teclas['r']] and teclas[alfabeto_teclas['i']]:
+            idx += 1
+        elif teclas[alfabeto_teclas['o']] and teclas[alfabeto_teclas['r']] and teclas[alfabeto_teclas['i']]\
+                or (modo_seq == True and idx < len(seq) and (seq[idx:idx+3] == ['o', 'r', 'i'] or seq[idx:idx+3] == ['O', 'R', 'I'])):
             estado_atual = SUPER_RIGHT if "RIGHT" in estado_atual else SUPER_LEFT
+            idx += 3
             continue
         else:
             simbolo = None

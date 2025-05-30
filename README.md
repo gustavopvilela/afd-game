@@ -69,6 +69,27 @@ O segundo ataque feito por Ori é seu ataque de explosão de energia presente na
 
 O combo aqui é definido como uma sequência de teclas que devem ser apertadas em ordem e simultaneamente para que um ataque especial ocorra. Ao pressionar as teclas `O`, `R` e `I` – formando a palavra "_Ori_", será mostrado em tela uma animação especial como seu super.
 
+## Modo de entrada com string
+
+Uma vez que este trabalho é sobre autômatos finitos determinísticos, nada mais justo que permitir que se entre com uma cadeia de caracteres para que o autômato a processe. Essa forma de entrada não é em tempo real, então, o usuário deve passar toda a cadeia de caracteres desejada antes de executar o programa.
+
+Para fazer isso, é simples:
+
+```bash
+    $ afd-game> cd src
+    $ afd-game/src> python main.py [cadeia_de_caracteres]
+```
+
+Por exemplo, se o comando digitado for:
+
+```bash
+    python main.py zzwefaaa
+```
+
+Então, Ori atacará duas vezes com o martelo, pulará, fará um dash e andará para a esquerda três vezes.
+
+Como essa funcionalidade é apenas para testes no autômato, ela está restrita a ser executada a partir da linha de comando, precisando o usuário encerrar o jogo para testar uma cadeia diferente. Entretanto, essa funcionalidade não impacta no jogo em tempo real, podendo o jogador usufruir do jogo normalmente após executadas todas as ações descritas na cadeia.
+
 ---
 
 _Feito com ❤️ para o professor Walace._
