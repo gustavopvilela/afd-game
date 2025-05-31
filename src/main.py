@@ -603,11 +603,11 @@ def main():
             if teclas[pygame.K_a] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'a'):
                 personagem.x -= personagem.velocidade_pulando
                 direcao_pulo = -1
-                idx += 1
+                if modo_seq == True and idx < len(seq): idx += 1
             elif teclas[pygame.K_d] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'd'):
                 personagem.x += personagem.velocidade_pulando
                 direcao_pulo = +1
-                idx += 1
+                if modo_seq == True and idx < len(seq): idx += 1
 
             # Aterrissagem
             if personagem.y >= y_chao:
@@ -777,12 +777,12 @@ def main():
                 personagem.x += personagem.velocidade_andando - 2
                 direcao = "right"
                 estado_atual = CROUCH_RIGHT
-                if modo_seq: idx += 1
+                if modo_seq == True and idx < len(seq): idx += 1
             elif teclas[alfabeto_teclas['a']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'a'):
                 personagem.x -= personagem.velocidade_andando - 2
                 direcao = "left"
                 estado_atual = CROUCH_LEFT
-                if modo_seq: idx += 1
+                if modo_seq == True and idx < len(seq): idx += 1
             else:
                 estado_atual = CROUCH_RIGHT if direcao=="right" else CROUCH_LEFT
 
@@ -800,19 +800,19 @@ def main():
         if teclas[alfabeto_teclas['d']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'd'):
             simbolo = 'd'
             direcao = "right"
-            idx += 1
+            if modo_seq == True and idx < len(seq): idx += 1 # Para evitar que o contador cresça demais
         elif teclas[alfabeto_teclas['a']] or (modo_seq == True and idx < len(seq) and seq[idx].lower() == 'a'):
             simbolo = 'a'
             direcao = "left"
-            idx += 1
+            if modo_seq == True and idx < len(seq): idx += 1 # Para evitar que o contador cresça demais
         elif teclas[alfabeto_teclas['o']] and teclas[alfabeto_teclas['r']] and teclas[alfabeto_teclas['i']]\
                 or (modo_seq == True and idx < len(seq) and (seq[idx:idx+3] == ['o', 'r', 'i'] or seq[idx:idx+3] == ['O', 'R', 'I'])):
             estado_atual = SUPER_RIGHT if "RIGHT" in estado_atual else SUPER_LEFT
-            idx += 3
+            if modo_seq == True and idx < len(seq): idx += 3 # Para evitar que o contador cresça demais
             continue
         else:
             simbolo = None
-            idx += 1
+            if modo_seq == True and idx < len(seq): idx += 1 # Para evitar que o contador cresça demais
 
         # Executando a ação
         estado_atual = afd.processar(simbolo)
