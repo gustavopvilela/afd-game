@@ -812,6 +812,7 @@ def main():
             continue
         else:
             simbolo = None
+            idx += 1
 
         # Executando a ação
         estado_atual = afd.processar(simbolo)
