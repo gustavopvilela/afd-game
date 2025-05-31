@@ -73,6 +73,8 @@ def main():
     ENERGYEXPLOSION_LEFT = "ENERGYEXPLOSION_LEFT"
     SUPER_LEFT = "SUPER_LEFT"
     SUPER_RIGHT = "SUPER_RIGHT"
+    WIN_RIGHT = "WIN_RIGHT"
+    WIN_LEFT = "WIN_LEFT"
 
     # Definindo as teclas aceitas pelo programa
     alfabeto_teclas = {
@@ -86,6 +88,7 @@ def main():
         'r': pygame.K_r,
         'i': pygame.K_i,
         'e': pygame.K_e,
+        'q': pygame.K_q,
         None: None
     }
 
@@ -98,6 +101,7 @@ def main():
         (IDLE_RIGHT, 'f'): DASH_RIGHT,
         (IDLE_RIGHT, 's'): CROUCH_RIGHT,
         (IDLE_RIGHT, 'e'): ENERGYEXPLOSION_RIGHT,
+        (IDLE_RIGHT, 'q'): WIN_RIGHT,
 
         (IDLE_LEFT, 'd'): WALK_RIGHT,
         (IDLE_LEFT, 'a'): WALK_LEFT,
@@ -106,6 +110,7 @@ def main():
         (IDLE_LEFT, 'f'): DASH_LEFT,
         (IDLE_LEFT, 's'): CROUCH_LEFT,
         (IDLE_LEFT, 'e'): ENERGYEXPLOSION_LEFT,
+        (IDLE_LEFT, 'q'): WIN_LEFT,
 
         (WALK_RIGHT, 'd'): WALK_RIGHT,
         (WALK_RIGHT, 'a'): WALK_LEFT,
@@ -114,6 +119,7 @@ def main():
         (WALK_RIGHT, 'f'): DASH_RIGHT,
         (WALK_RIGHT, 's'): CROUCH_RIGHT,
         (WALK_RIGHT, 'e'): ENERGYEXPLOSION_RIGHT,
+        (WALK_RIGHT, 'q'): WIN_RIGHT,
 
         (WALK_LEFT, 'd'): WALK_RIGHT,
         (WALK_LEFT, 'a'): WALK_LEFT,
@@ -122,6 +128,7 @@ def main():
         (WALK_LEFT, 'f'): DASH_LEFT,
         (WALK_LEFT, 's'): CROUCH_LEFT,
         (WALK_LEFT, 'e'): ENERGYEXPLOSION_LEFT,
+        (WALK_LEFT, 'q'): WIN_LEFT,
 
         (HAMMER_LEFT, None): IDLE_LEFT,
         (HAMMER_RIGHT, None): IDLE_RIGHT,
@@ -130,7 +137,9 @@ def main():
         (DASH_RIGHT, None): IDLE_RIGHT,
 
         (CROUCH_RIGHT, None): IDLE_RIGHT,
+        (CROUCH_RIGHT, 'q'): WIN_RIGHT,
         (CROUCH_LEFT, None): IDLE_LEFT,
+        (CROUCH_LEFT, 'q'): WIN_LEFT,
 
         (ENERGYEXPLOSION_LEFT, None): IDLE_LEFT,
         (ENERGYEXPLOSION_RIGHT, None): IDLE_RIGHT,
@@ -188,6 +197,10 @@ def main():
     energy_explosion_sound.set_volume(1.0)
     energy_explosion_sound_playing = False
 
+    win_sound = pygame.mixer.Sound('../sounds/win_sound.wav')
+    win_sound.set_volume(1.0)
+    win_sound_playing = False
+
     # Soundtrack
     pygame.mixer.music.load('../sounds/luma_pools.mp3')
     pygame.mixer.music.play(loops=-1, fade_ms=2000)
@@ -236,6 +249,8 @@ def main():
     sprites_super_left = Sprite.carregar_sprites("../sprites/super/left")
     sprites_energyexplosion_right = Sprite.carregar_sprites("../sprites/energyexplosion/right")
     sprites_energyexplosion_left = Sprite.carregar_sprites("../sprites/energyexplosion/left")
+    sprites_win_right = Sprite.carregar_sprites("../sprites/win/right")
+    sprites_win_left = Sprite.carregar_sprites("../sprites/win/left")
 
     # Definindo as ações realizadas pelo personagem
     acoes = {
@@ -259,15 +274,19 @@ def main():
         # São uma preparação para o super.
 
         SUPER_LEFT:     (personagem.super_left, sprites_super_left),
-        SUPER_RIGHT:    (personagem.super_right, sprites_super_right)
+        SUPER_RIGHT:    (personagem.super_right, sprites_super_right),
+
+        WIN_RIGHT:      (personagem.win_right, sprites_win_right),
+        WIN_LEFT:       (personagem.win_left, sprites_win_left)
     }
 
-    # Flag para controlar execução completa do hammer e do dash
+    # Flag para controlar execução das ações
     supering = False
     hammering = False
     dashing = False
     crouching = False
     exploding = False
+    winning = False
     estado_atual = afd.estado_inicial
     direcao = "right" if "RIGHT" in estado_atual else "left"
 
@@ -302,7 +321,7 @@ def main():
         # Primeiro, trataremos os eventos individuais do PyGame
         # na forma de entrada de argumentos.
         if modo_seq:
-            if idx < len(seq) and not any([exploding, hammering, jumping, dashing, supering]):
+            if idx < len(seq) and not any([exploding, hammering, jumping, dashing, supering, winning]):
                 # Para que essas ações aconteçam, nenhuma das outras pode estar acontecendo
 
                 match seq[idx].lower():
@@ -349,6 +368,18 @@ def main():
                             estado_atual = CROUCH_RIGHT if direcao == "right" else CROUCH_LEFT
                         else:
                             estado_atual = IDLE_RIGHT if estado_atual == CROUCH_RIGHT else IDLE_LEFT
+                        idx += 1
+                    case 'q':
+                        if "RIGHT" in estado_atual:
+                            if not winning:
+                                winning = True
+                                personagem.frame = 0
+                                estado_atual = WIN_RIGHT
+                        else:
+                            if not winning:
+                                winning = True
+                                personagem.frame = 0
+                                estado_atual = WIN_LEFT
                         idx += 1
 
         # Devemos tratar os eventos que interrompam o loop de execução, como animações em que o personagem precisa
@@ -413,6 +444,18 @@ def main():
                 else:
                     estado_atual = IDLE_RIGHT if estado_atual == CROUCH_RIGHT else IDLE_LEFT
 
+            elif evento.type == pygame.KEYDOWN and (evento.key == pygame.K_q or evento.key == pygame.K_ESCAPE) and "RIGHT" in estado_atual:
+                if not winning:
+                    winning = True
+                    personagem.frame = 0
+                    estado_atual = WIN_RIGHT
+
+            elif evento.type == pygame.KEYDOWN and (evento.key == pygame.K_q or evento.key == pygame.K_ESCAPE) and "LEFT" in estado_atual:
+                if not winning:
+                    winning = True
+                    personagem.frame = 0
+                    estado_atual = WIN_LEFT
+
         # Renderizando o super
         if supering:
             # Garantindo que as outras ações não interferirão no super
@@ -420,6 +463,7 @@ def main():
             jumping = False
             dashing = False
             exploding = False
+            winning = False
 
             if not super_explosion_sound_playing:
                 super_explosion_sound.play()
@@ -544,6 +588,7 @@ def main():
             dashing = False
             hammering = False
             supering = False
+            winning = False
 
             if not jump_sound_playing:
                 jump_sound.play()
@@ -592,6 +637,7 @@ def main():
             supering = False
             jumping = False
             exploding = False
+            winning = False
 
             if not hammer_sound_playing:
                 hammer_sound.play()
@@ -625,6 +671,7 @@ def main():
             supering = False
             jumping = False
             hammering = False
+            winning = False
 
             if not energy_explosion_sound_playing:
                 energy_explosion_sound.play()
@@ -650,6 +697,38 @@ def main():
             clock.tick(FRAME_RATE)
             continue  # Pula a execução das teclas normais (andar, pular, agachar, etc.)
 
+        # Win: o personagem faz uma animação de finalização e encerra a execução
+        if winning:
+            # Garantindo que as outras ações não interferirão no winning
+            dashing = False
+            supering = False
+            jumping = False
+            hammering = False
+            exploding = False
+
+            if not win_sound_playing:
+                win_sound.play()
+                win_sound_playing = True
+
+            if agora - ultimo_tick > DELAY:
+                ultimo_tick = agora
+                personagem.frame += 1
+
+                # Passou do último, encerra o programa
+                limite = len(sprites_win_right) if estado_atual == WIN_RIGHT else len(sprites_win_left)
+                if personagem.frame >= limite:
+                    winning = False
+                    personagem.frame = limite - 1
+                    win_sound_playing = False
+                    time.sleep(0.5)
+                    em_execucao = False
+
+            # Mostrando na tela
+            acao, sprites = acoes[estado_atual]
+            acao()
+            desenhar_frame(personagem, h, sprites, tela, background, fade, alpha, kuro, alpha_kuro)
+            clock.tick(FRAME_RATE)
+            continue
 
         # Dash: o personagem avança em um dash.
         if dashing:

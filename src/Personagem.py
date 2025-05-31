@@ -50,6 +50,12 @@ class Personagem:
     def super_left (self):
         pass
 
+    def win_right (self):
+        pass
+
+    def win_left (self):
+        pass
+
     def stay_in_bounds(self, border_left, border_right, screen_height, sprite_width, sprite_height):
         if self.x < border_left:
             self.x = border_left
